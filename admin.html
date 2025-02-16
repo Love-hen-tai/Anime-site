@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #74b9ff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Админ-панель</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Имя пользователя</th>
+                    <th>Широта</th>
+                    <th>Долгота</th>
+                    <th>Точность</th>
+                    <th>Время</th>
+                </tr>
+            </thead>
+            <tbody id="locationTable">
+                <tr>
+                    <td colspan="5">Загрузка данных...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function loadLocations() {
+            const locationData = JSON.parse(localStorage.getItem('locations')) || {};
+
+            const tableBody = document.getElementById("locationTable");
+            tableBody.innerHTML = ""; // Очищаем таблицу
+
+            if (Object.keys(locationData).length === 0) {
+                tableBody.innerHTML = "<tr><td colspan='5'>Нет данных</td></tr>";
+                return;
+            }
+
+            Object.keys(locationData).forEach(username => {
+                const loc = locationData[username];
+                const row = `<tr>
+                    <td>${username}</td>
+                    <td>${loc.lat || "N/A"}</td>
+                    <td>${loc.lon || "N/A"}</td>
+                    <td>${loc.accuracy ? loc.accuracy + " м" : "N/A"}</td>
+                    <td>${loc.timestamp || "N/A"}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        window.onload = loadLocations;
+    </script>
+</body>
+</html>
