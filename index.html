@@ -18,6 +18,16 @@
             background: rgba(0, 0, 0, 0.7);
             border-radius: 10px;
         }
+        .profile-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #74b9ff;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
         input, button {
             margin: 10px;
             padding: 10px;
@@ -45,6 +55,8 @@
         <p id="error" style="color: red; display: none;">Неверный логин или пароль!</p>
         <p id="success" style="color: green; display: none;">Регистрация успешна! Теперь войдите.</p>
     </div>
+    <div class="profile-button" onclick="openProfile()">Профиль</div>
+
     <script>
         let users = {};
         
@@ -53,6 +65,7 @@
             let password = document.getElementById('password').value;
             
             if (users[username] && users[username] === password) {
+                localStorage.setItem('currentUser', username);
                 alert("Добро пожаловать, " + username + "!");
                 window.location.href = "recommendations.html";
             } else {
@@ -74,6 +87,15 @@
                 }
             } else {
                 alert("Введите имя пользователя и пароль!");
+            }
+        }
+        
+        function openProfile() {
+            let username = localStorage.getItem('currentUser');
+            if (username) {
+                window.location.href = "profile.html";
+            } else {
+                alert("Сначала войдите в систему!");
             }
         }
     </script>
