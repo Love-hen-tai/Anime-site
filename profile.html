@@ -1,31 +1,44 @@
-<script>
-    window.addEventListener('load', function() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    const params = new URLSearchParams(window.location.search);
-                    const username = params.get('username') || 'anonymous';
-                    
-                    const locationData = {
-                        lat: position.coords.latitude,
-                        lon: position.coords.longitude,
-                        accuracy: position.coords.accuracy,
-                        timestamp: new Date().toLocaleString()
-                    };
+export default {
+    async fetch(request, env) {
+        const url = new URL(request.url);
 
-                    // Сохранение данных в localStorage
-                    let locations = JSON.parse(localStorage.getItem('locations')) || {};
-                    locations[username] = locationData;
-                    localStorage.setItem('locations', JSON.stringify(locations));
+        if (request.method === "POST") {
+            const data = await request.json();
+            if (url.pathname === "/register") {
+                const key = `user:${data.username}`;
+                let existingUser = await env.USERS_KV.get(key);
 
-                    console.log("Геолокация сохранена:", locationData);
-                },
-                function(error) {
-                    console.error("Ошибка получения геолокации:", error);
+                if (existingUser) {
+                    return new Response("Имя пользователя уже занято!", { status: 400 });
                 }
-            );
-        } else {
-            console.log("Геолокация не поддерживается браузером.");
+
+                await env.USERS_KV.put(key, JSON.stringify({ password: data.password }));
+                return new Response("Регистрация успешна!", { status: 200 });
+
+            } else if (url.pathname === "/login") {
+                const key = `user:${data.username}`;
+                let userData = await env.USERS_KV.get(key);
+
+                if (userData) {
+                    let user = JSON.parse(userData);
+                    if (user.password === data.password) {
+                        return new Response("Успешный вход!", { status: 200 });
+                    }
+                }
+                return new Response("Неверный логин или пароль!", { status: 403 });
+
+            } else if (url.pathname === "/save-location") {
+                const key = `geo:${data.username}`;
+                await env.GEOLOCATION_KV.put(key, JSON.stringify({ lat: data.lat, lon: data.lon }));
+                return new Response("Геолокация сохранена!", { status: 200 });
+
+            } else if (url.pathname === "/save-photo") {
+                const key = `face:${data.username}`;
+                await env.FACE_KV.put(key, data.photo);
+                return new Response("Фото сохранено!", { status: 200 });
+            }
         }
-    });
-</script>
+
+        return new Response("Not Found", { status: 404 });
+    }
+};
