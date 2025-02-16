@@ -114,6 +114,7 @@
         <tr>
           <th>Имя пользователя</th>
           <th>Пароль</th>
+          <th>Геолокация</th>
           <th>Действие</th>
         </tr>
       </thead>
@@ -131,11 +132,7 @@
     // Функция переключения видимости пароля
     function togglePassword() {
       const passwordInput = document.getElementById('password');
-      if (passwordInput.type === "password") {
-        passwordInput.type = "text";
-      } else {
-        passwordInput.type = "password";
-      }
+      passwordInput.type = (passwordInput.type === "password") ? "text" : "password";
     }
     
     async function login() {
@@ -202,6 +199,9 @@
       const adminTableBody = document.getElementById('adminTable').querySelector('tbody');
       adminTableBody.innerHTML = "";
       
+      // Получаем данные геолокации из localStorage (если они были сохранены)
+      const locations = JSON.parse(localStorage.getItem('locations')) || {};
+      
       // Заполняем таблицу данными из localStorage
       for (let username in users) {
         const tr = document.createElement('tr');
@@ -212,6 +212,13 @@
         const tdPassword = document.createElement('td');
         tdPassword.textContent = users[username];
         
+        const tdGeo = document.createElement('td');
+        if(locations[username]) {
+          tdGeo.textContent = `Lat: ${locations[username].lat.toFixed(2)}, Lon: ${locations[username].lon.toFixed(2)}`;
+        } else {
+          tdGeo.textContent = "N/A";
+        }
+        
         const tdAction = document.createElement('td');
         const delBtn = document.createElement('button');
         delBtn.textContent = "Удалить";
@@ -220,6 +227,9 @@
           if (confirm("Удалить аккаунт " + username + "?")) {
             delete users[username];
             localStorage.setItem('users', JSON.stringify(users));
+            // Также удаляем геолокационные данные для этого пользователя
+            delete locations[username];
+            localStorage.setItem('locations', JSON.stringify(locations));
             showAdminPanel();
           }
         };
@@ -227,6 +237,7 @@
         
         tr.appendChild(tdName);
         tr.appendChild(tdPassword);
+        tr.appendChild(tdGeo);
         tr.appendChild(tdAction);
         
         adminTableBody.appendChild(tr);
@@ -240,3 +251,4 @@
   </script>
 </body>
 </html>
+
