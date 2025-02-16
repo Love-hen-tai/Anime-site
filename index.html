@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Сайт на GitHub + Cloudflare API</title>
+</head>
+<body>
+  <h1>Добро пожаловать!</h1>
+
+  <!-- Форма авторизации/регистрации -->
+  <div id="login">
+    <h2>Вход/Регистрация</h2>
+    <form id="loginForm">
+      <label>Имя пользователя:
+        <input type="text" id="username" required />
+      </label><br/>
+      <label>Пароль:
+        <input type="password" id="password" required />
+      </label><br/>
+      <button type="submit">Войти / Зарегистрироваться</button>
+    </form>
+    <div id="loginMessage" style="color:red;"></div>
+  </div>
+
+  <!-- Основное содержимое для авторизованных пользователей -->
+  <div id="content" style="display:none;">
+    <h2>Сделай снимок и отправь свою геолокацию</h2>
+    <video id="video" width="320" height="240" autoplay></video>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+    <br/>
+    <button id="captureBtn">Сделать снимок</button>
+    <div id="status"></div>
+  </div>
+
+<script>
+  let currentUser = null;
+  // Укажите URL вашего Cloudflare Worker
+  const apiBase = 'https://your-cloudflare-worker.example.workers.dev';
+
+  // Обработка формы логина/регистрации
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    // Пробуем выполнить вход
+    let response = await fetch(apiBase + '/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    let result = await response.json();
+    if (!result.success) {
+      // Если вход не удался – регистрируем пользователя
+      response = await fetch(apiBase + '/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      result = await response.json();
+    }
+    if (result.success) {
+      currentUser = result.user;
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+      initCamera();
+      initGeolocation();
+      document.getElementById('status').innerText = 'Вы вошли как ' + currentUser;
+    } else {
+      document.getElementById('loginMessage').innerText = result.message;
+    }
+  });
+
+  // Инициализация камеры
+  function initCamera() {
+    const video = document.getElementById('video');
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        document.getElementById('status').innerText = 'Доступ к камере отклонён: ' + err;
+      });
+  }
+
+  // Обработчик кнопки "Сделать снимок"
+  document.getElementById('captureBtn').addEventListener('click', function() {
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Получаем изображение в формате DataURL
+    const imageData = canvas.toDataURL('image/png');
+    // Отправляем снимок на Cloudflare Worker
+    fetch(apiBase + '/api/upload_face', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user: currentUser, image: imageData })
+    })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('status').innerText = 'Снимок сохранён (ключ: ' + data.key + ')';
+    })
+    .catch(err => {
+      document.getElementById('status').innerText = 'Ошибка при отправке снимка: ' + err;
+    });
+  });
+
+  // Инициализация геолокации
+  function initGeolocation() {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        updateLocation(latitude, longitude);
+      }, function(error) {
+        document.getElementById('status').innerText += '\nДоступ к геолокации отклонён, используем IP-геолокацию.';
+        // Если геолокация отклонена – отправляем пустые координаты (Worker может использовать IP-геолокацию)
+        updateLocation(null, null);
+      });
+    } else {
+      document.getElementById('status').innerText += '\nГеолокация не поддерживается.';
+      updateLocation(null, null);
+    }
+  }
+
+  // Отправка данных о местоположении на Worker
+  function updateLocation(latitude, longitude) {
+    fetch(apiBase + '/api/update_location', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user: currentUser, latitude, longitude })
+    })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('status').innerText += '\nМестоположение обновлено (ключ: ' + data.key + ')';
+    })
+    .catch(err => {
+      document.getElementById('status').innerText += '\nОшибка при обновлении местоположения: ' + err;
+    });
+  }
+</script>
+</body>
+</html>
