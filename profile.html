@@ -71,7 +71,7 @@
       formData.append('username', username);
 
       // Замените URL ниже на адрес вашего Cloudflare Worker для загрузки фото
-      const response = await fetch('https://your-cloudflare-worker-url/faces', {
+      const response = await fetch('https://iper.ivantimockin19.workers.dev//faces', {
         method: 'POST',
         body: formData
       });
@@ -81,7 +81,7 @@
 
       if (response.ok) {
         // После загрузки, пробуем получить фото для отображения
-        const photoResponse = await fetch('https://your-cloudflare-worker-url/faces?username=' + username);
+        const photoResponse = await fetch('https://iper.ivantimockin19.workers.dev//faces?username=' + username);
         if (photoResponse.ok) {
           const blob = await photoResponse.blob();
           const url = URL.createObjectURL(blob);
