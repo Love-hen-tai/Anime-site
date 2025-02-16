@@ -10,6 +10,8 @@
             text-align: center;
             background: linear-gradient(45deg, #ff9a9e, #fad0c4);
             color: #fff;
+            margin: 0;
+            padding: 0;
         }
         .container {
             max-width: 600px;
@@ -17,6 +19,7 @@
             padding: 20px;
             background: rgba(0, 0, 0, 0.7);
             border-radius: 10px;
+            position: relative;
         }
         .profile-button {
             position: absolute;
@@ -33,6 +36,8 @@
             padding: 10px;
             border: none;
             border-radius: 5px;
+            width: calc(100% - 24px);
+            display: block;
         }
         button {
             background: #ff7675;
@@ -41,6 +46,9 @@
         }
         button:hover {
             background: #d63031;
+        }
+        #error, #success {
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -54,13 +62,13 @@
         <button onclick="register()">Зарегистрироваться</button>
         <p id="error" style="color: red; display: none;">Неверный логин или пароль!</p>
         <p id="success" style="color: green; display: none;">Регистрация успешна! Теперь войдите.</p>
+        <div class="profile-button" onclick="openProfile()">Профиль</div>
     </div>
-    <div class="profile-button" onclick="openProfile()">Профиль</div>
 
     <script>
-        let users = {};
+        let users = JSON.parse(localStorage.getItem('users')) || {};
         
-        function login() {
+        async function login() {
             let username = document.getElementById('username').value;
             let password = document.getElementById('password').value;
             
@@ -73,13 +81,22 @@
             }
         }
         
-        function register() {
+        async function register() {
             let username = document.getElementById('username').value;
             let password = document.getElementById('password').value;
             
             if (username && password) {
                 if (!users[username]) {
                     users[username] = password;
+                    localStorage.setItem('users', JSON.stringify(users));
+                    
+                    // Сохранение данных в Cloudflare KV
+                    await fetch('https://iper.ivantimockin19.workers.dev/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
                     document.getElementById('success').style.display = 'block';
                     document.getElementById('error').style.display = 'none';
                 } else {
@@ -93,7 +110,7 @@
         function openProfile() {
             let username = localStorage.getItem('currentUser');
             if (username) {
-                window.location.href = "profile.html";
+                window.location.href = "profile.html?username=" + username;
             } else {
                 alert("Сначала войдите в систему!");
             }
