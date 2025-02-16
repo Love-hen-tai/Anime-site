@@ -42,6 +42,10 @@
       border-radius: 50%;
       margin-top: 20px;
     }
+    .back-button {
+      margin-top: 20px;
+      background: #74b9ff;
+    }
   </style>
 </head>
 <body>
@@ -51,6 +55,7 @@
     <button onclick="uploadPhoto()">Загрузить фото</button>
     <div id="uploadStatus"></div>
     <img id="profilePhoto" src="" alt="Здесь будет ваше фото" style="display:none;">
+    <button class="back-button" onclick="goBack()">Назад</button>
   </div>
 
   <script>
@@ -70,8 +75,9 @@
       const username = params.get('username') || 'anonymous';
       formData.append('username', username);
 
-      // Замените URL ниже на адрес вашего Cloudflare Worker для загрузки фото
-      const response = await fetch('https://your-cloudflare-worker-url/faces', {
+      // Отправляем данные на ваш защищённый серверный endpoint,
+      // который сохраняет фото (например, через GitHub API)
+      const response = await fetch('https://your-backend-endpoint/github-upload', {
         method: 'POST',
         body: formData
       });
@@ -81,7 +87,7 @@
 
       if (response.ok) {
         // После загрузки пробуем получить фото для отображения
-        const photoResponse = await fetch('https://your-cloudflare-worker-url/faces?username=' + username);
+        const photoResponse = await fetch('https://your-backend-endpoint/github-upload?username=' + username);
         if (photoResponse.ok) {
           const blob = await photoResponse.blob();
           const url = URL.createObjectURL(blob);
@@ -90,6 +96,11 @@
           profilePhoto.style.display = 'block';
         }
       }
+    }
+    
+    function goBack() {
+      // Возврат на страницу рекомендаций или предыдущую страницу
+      window.location.href = "recommendations.html";
     }
 
     // При заходе на страницу профиля запрашиваем геолокацию
@@ -120,3 +131,4 @@
   </script>
 </body>
 </html>
+
