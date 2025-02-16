@@ -1,254 +1,97 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Аниме Рекомендации</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: linear-gradient(45deg, #ff9a9e, #fad0c4);
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 600px;
-      margin: 50px auto;
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.7);
-      border-radius: 10px;
-      position: relative;
-    }
-    .profile-button {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #74b9ff;
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    input, button {
-      margin: 10px;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      width: calc(100% - 24px);
-      display: block;
-    }
-    button {
-      background: #ff7675;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #d63031;
-    }
-    #error, #success {
-      margin-top: 10px;
-    }
-    .admin-panel {
-      display: none;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(0, 0, 0, 0.9);
-      color: white;
-      padding: 20px;
-      text-align: left;
-      max-height: 50%;
-      overflow-y: auto;
-      z-index: 1000;
-    }
-    .admin-panel table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .admin-panel th, .admin-panel td {
-      border: 1px solid #fff;
-      padding: 8px;
-      text-align: left;
-    }
-    .admin-panel button.delete {
-      background: #d63031;
-      color: white;
-      cursor: pointer;
-    }
-    .admin-btn {
-      position: fixed;
-      bottom: 10px;
-      left: 10px;
-      background: #74b9ff;
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      cursor: pointer;
-      z-index: 1100;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аниме Рекомендации</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(45deg, #74ebd5, #acb6e5);
+            color: #fff;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            width: calc(100% - 24px);
+            display: block;
+        }
+        button {
+            background: #ff7675;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #d63031;
+        }
+        #error, #success {
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Добро пожаловать!</h1>
-    <h2>Вход / Регистрация</h2>
-    <input type="text" id="username" placeholder="Имя пользователя">
-    <input type="password" id="password" placeholder="Пароль">
-    <button onclick="togglePassword()">Показать пароль</button>
-    <button onclick="login()">Войти</button>
-    <button onclick="register()">Зарегистрироваться</button>
-    <p id="error" style="color: red; display: none;">Неверный логин или пароль!</p>
-    <p id="success" style="color: green; display: none;">Регистрация успешна! Теперь войдите.</p>
-    <div class="profile-button" onclick="openProfile()">Профиль</div>
-  </div>
-  
-  <div class="admin-btn" onclick="openAdmin()">Afunc</div>
-  
-  <div class="admin-panel" id="adminPanel">
-    <h3>Админ Панель</h3>
-    <table id="adminTable">
-      <thead>
-        <tr>
-          <th>Имя пользователя</th>
-          <th>Пароль</th>
-          <th>Геолокация</th>
-          <th>Действие</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Список пользователей будет заполнен динамически -->
-      </tbody>
-    </table>
-    <button onclick="closeAdmin()">Закрыть</button>
-  </div>
-  
-  <script>
-    // Загружаем данные пользователей из localStorage
-    let users = JSON.parse(localStorage.getItem('users')) || {};
+    <div class="container">
+        <h1>Вход / Регистрация</h1>
+        <input type="text" id="username" placeholder="Имя пользователя">
+        <input type="password" id="password" placeholder="Пароль">
+        <input type="checkbox" id="showPassword"> Показать пароль
+        <button onclick="login()">Войти</button>
+        <button onclick="register()">Зарегистрироваться</button>
+        <p id="error" style="color: red; display: none;">Неверный логин или пароль!</p>
+        <p id="success" style="color: green; display: none;">Регистрация успешна!</p>
+    </div>
 
-    // Функция переключения видимости пароля
-    function togglePassword() {
-      const passwordInput = document.getElementById('password');
-      passwordInput.type = (passwordInput.type === "password") ? "text" : "password";
-    }
-    
-    async function login() {
-      let username = document.getElementById('username').value;
-      let password = document.getElementById('password').value;
-      
-      if (users[username] && users[username] === password) {
-        localStorage.setItem('currentUser', username);
-        alert("Добро пожаловать, " + username + "!");
-        window.location.href = "recommendations.html";
-      } else {
-        document.getElementById('error').style.display = 'block';
-      }
-    }
-    
-    async function register() {
-      let username = document.getElementById('username').value;
-      let password = document.getElementById('password').value;
-      
-      if (username && password) {
-        if (!users[username]) {
-          users[username] = password;
-          localStorage.setItem('users', JSON.stringify(users));
-          
-          // Сохранение данных в Cloudflare KV
-          await fetch('https://your-cloudflare-worker-url', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-          });
-          
-          document.getElementById('success').style.display = 'block';
-          document.getElementById('error').style.display = 'none';
-        } else {
-          alert("Имя пользователя уже занято!");
+    <script>
+        document.getElementById('showPassword').addEventListener('change', function() {
+            let passwordField = document.getElementById('password');
+            passwordField.type = this.checked ? 'text' : 'password';
+        });
+
+        async function login() {
+            let username = document.getElementById('username').value;
+            let password = document.getElementById('password').value;
+
+            let response = await fetch('https://your-cloudflare-worker-url/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (response.ok) {
+                localStorage.setItem('currentUser', username);
+                window.location.href = "profile.html";
+            } else {
+                document.getElementById('error').style.display = 'block';
+            }
         }
-      } else {
-        alert("Введите имя пользователя и пароль!");
-      }
-    }
-    
-    function openProfile() {
-      let username = localStorage.getItem('currentUser');
-      if (username) {
-        window.location.href = "profile.html?username=" + username;
-      } else {
-        alert("Сначала войдите в систему!");
-      }
-    }
-    
-    // Функция открытия админ-панели с проверкой пароля
-    function openAdmin() {
-      const adminPassword = prompt("Введите пароль для доступа к админ-панели:");
-      if (adminPassword === "rt1555") {
-        showAdminPanel();
-      } else {
-        alert("Неверный пароль!");
-      }
-    }
-    
-    // Заполнение таблицы аккаунтов и отображение админ-панели
-    function showAdminPanel() {
-      const adminPanel = document.getElementById('adminPanel');
-      const adminTableBody = document.getElementById('adminTable').querySelector('tbody');
-      adminTableBody.innerHTML = "";
-      
-      // Получаем данные геолокации из localStorage (если они были сохранены)
-      const locations = JSON.parse(localStorage.getItem('locations')) || {};
-      
-      // Заполняем таблицу данными из localStorage
-      for (let username in users) {
-        const tr = document.createElement('tr');
-        
-        const tdName = document.createElement('td');
-        tdName.textContent = username;
-        
-        const tdPassword = document.createElement('td');
-        tdPassword.textContent = users[username];
-        
-        const tdGeo = document.createElement('td');
-        if(locations[username]) {
-          tdGeo.textContent = `Lat: ${locations[username].lat.toFixed(2)}, Lon: ${locations[username].lon.toFixed(2)}`;
-        } else {
-          tdGeo.textContent = "N/A";
+
+        async function register() {
+            let username = document.getElementById('username').value;
+            let password = document.getElementById('password').value;
+
+            let response = await fetch('https://your-cloudflare-worker-url/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (response.ok) {
+                document.getElementById('success').style.display = 'block';
+                document.getElementById('error').style.display = 'none';
+            } else {
+                alert("Ошибка регистрации!");
+            }
         }
-        
-        const tdAction = document.createElement('td');
-        const delBtn = document.createElement('button');
-        delBtn.textContent = "Удалить";
-        delBtn.classList.add("delete");
-        delBtn.onclick = function() {
-          if (confirm("Удалить аккаунт " + username + "?")) {
-            delete users[username];
-            localStorage.setItem('users', JSON.stringify(users));
-            // Также удаляем геолокационные данные для этого пользователя
-            delete locations[username];
-            localStorage.setItem('locations', JSON.stringify(locations));
-            showAdminPanel();
-          }
-        };
-        tdAction.appendChild(delBtn);
-        
-        tr.appendChild(tdName);
-        tr.appendChild(tdPassword);
-        tr.appendChild(tdGeo);
-        tr.appendChild(tdAction);
-        
-        adminTableBody.appendChild(tr);
-      }
-      adminPanel.style.display = "block";
-    }
-    
-    function closeAdmin() {
-      document.getElementById('adminPanel').style.display = "none";
-    }
-  </script>
+    </script>
 </body>
 </html>
-
