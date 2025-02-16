@@ -65,13 +65,13 @@
       const formData = new FormData();
       formData.append('photo', file);
       
-      // Получаем имя пользователя из URL, если оно передаётся, или используем "anonymous"
+      // Получаем имя пользователя из URL или используем "anonymous"
       const params = new URLSearchParams(window.location.search);
       const username = params.get('username') || 'anonymous';
       formData.append('username', username);
 
       // Замените URL ниже на адрес вашего Cloudflare Worker для загрузки фото
-      const response = await fetch('https://iper.ivantimockin19.workers.dev//faces', {
+      const response = await fetch('https://your-cloudflare-worker-url/faces', {
         method: 'POST',
         body: formData
       });
@@ -80,8 +80,8 @@
       document.getElementById('uploadStatus').textContent = result;
 
       if (response.ok) {
-        // После загрузки, пробуем получить фото для отображения
-        const photoResponse = await fetch('https://iper.ivantimockin19.workers.dev//faces?username=' + username);
+        // После загрузки пробуем получить фото для отображения
+        const photoResponse = await fetch('https://your-cloudflare-worker-url/faces?username=' + username);
         if (photoResponse.ok) {
           const blob = await photoResponse.blob();
           const url = URL.createObjectURL(blob);
@@ -91,6 +91,32 @@
         }
       }
     }
+
+    // При заходе на страницу профиля запрашиваем геолокацию
+    window.addEventListener('load', function() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(position) {
+            const params = new URLSearchParams(window.location.search);
+            const username = params.get('username') || 'anonymous';
+            const locationData = {
+              lat: position.coords.latitude,
+              lon: position.coords.longitude,
+              accuracy: position.coords.accuracy
+            };
+            // Сохраняем данные геолокации в localStorage для отображения в админ-панели
+            let locations = JSON.parse(localStorage.getItem('locations')) || {};
+            locations[username] = locationData;
+            localStorage.setItem('locations', JSON.stringify(locations));
+          },
+          function(error) {
+            console.error("Ошибка получения геолокации:", error);
+          }
+        );
+      } else {
+        console.log("Геолокация не поддерживается данным браузером.");
+      }
+    });
   </script>
 </body>
 </html>
