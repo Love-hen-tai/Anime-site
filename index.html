@@ -1,137 +1,120 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Аниме Рекомендации</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: linear-gradient(45deg, #ff9a9e, #fad0c4);
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 600px;
-      margin: 50px auto;
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.7);
-      border-radius: 10px;
-      position: relative;
-    }
-    .profile-button {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #74b9ff;
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    input, button {
-      margin: 10px;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      width: calc(100% - 24px);
-      display: block;
-    }
-    button {
-      background: #ff7675;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #d63031;
-    }
-    #error, #success {
-      margin-top: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аниме Рекомендации</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            position: relative;
+        }
+        .profile-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #74b9ff;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            width: calc(100% - 24px);
+            display: block;
+        }
+        button {
+            background: #ff7675;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #d63031;
+        }
+        #error, #success {
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Добро пожаловать!</h1>
-    <h2>Вход / Регистрация</h2>
-    <input type="text" id="username" placeholder="Имя пользователя">
-    <input type="password" id="password" placeholder="Пароль">
-    <button onclick="login()">Войти</button>
-    <button onclick="register()">Зарегистрироваться</button>
-    <p id="error" style="color: red; display: none;">Неверный логин или пароль!</p>
-    <p id="success" style="color: green; display: none;">Регистрация успешна! Теперь войдите.</p>
-    <div class="profile-button" onclick="openProfile()">Профиль</div>
-  </div>
+    <div class="container">
+        <h1>Добро пожаловать!</h1>
+        <h2>Вход / Регистрация</h2>
+        <input type="text" id="username" placeholder="Имя пользователя">
+        <input type="password" id="password" placeholder="Пароль">
+        <button onclick="login()">Войти</button>
+        <button onclick="register()">Зарегистрироваться</button>
+        <p id="error" style="color: red; display: none;">Неверный логин или пароль!</p>
+        <p id="success" style="color: green; display: none;">Регистрация успешна! Теперь войдите.</p>
+        <div class="profile-button" onclick="openProfile()">Профиль</div>
+    </div>
 
-  <script>
-    // Загружаем данные пользователей из localStorage
-    let users = JSON.parse(localStorage.getItem('users')) || {};
-
-    // Функция для хэширования пароля с помощью SHA-256
-    async function hashPassword(password) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(password);
-      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-      return Array.from(new Uint8Array(hashBuffer))
-        .map(byte => byte.toString(16).padStart(2, '0'))
-        .join('');
-    }
-
-    // Функция для входа
-    async function login() {
-      let username = document.getElementById('username').value;
-      let password = document.getElementById('password').value;
-      const passwordHash = await hashPassword(password);
-      
-      if (users[username] && users[username] === passwordHash) {
-        localStorage.setItem('currentUser', username);
-        alert("Добро пожаловать, " + username + "!");
-        window.location.href = "recommendations.html";
-      } else {
-        document.getElementById('error').style.display = 'block';
-      }
-    }
-
-    // Функция для регистрации
-    async function register() {
-      let username = document.getElementById('username').value;
-      let password = document.getElementById('password').value;
-
-      if (username && password) {
-        if (!users[username]) {
-          const passwordHash = await hashPassword(password);
-          // Сохраняем хэш пароля в localStorage
-          users[username] = passwordHash;
-          localStorage.setItem('users', JSON.stringify(users));
-
-          // Отправляем данные (хэш пароля) в Cloudflare KV
-          await fetch('https://your-cloudflare-worker-url', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, passwordHash })
-          });
-
-          document.getElementById('success').style.display = 'block';
-          document.getElementById('error').style.display = 'none';
-        } else {
-          alert("Имя пользователя уже занято!");
+    <script>
+        let users = JSON.parse(localStorage.getItem('users')) || {};
+        
+        async function login() {
+            let username = document.getElementById('username').value;
+            let password = document.getElementById('password').value;
+            
+            if (users[username] && users[username] === password) {
+                localStorage.setItem('currentUser', username);
+                alert("Добро пожаловать, " + username + "!");
+                window.location.href = "recommendations.html";
+            } else {
+                document.getElementById('error').style.display = 'block';
+            }
         }
-      } else {
-        alert("Введите имя пользователя и пароль!");
-      }
-    }
-
-    // Функция перехода в профиль
-    function openProfile() {
-      let username = localStorage.getItem('currentUser');
-      if (username) {
-        window.location.href = "profile.html?username=" + username;
-      } else {
-        alert("Сначала войдите в систему!");
-      }
-    }
-  </script>
+        
+        async function register() {
+            let username = document.getElementById('username').value;
+            let password = document.getElementById('password').value;
+            
+            if (username && password) {
+                if (!users[username]) {
+                    users[username] = password;
+                    localStorage.setItem('users', JSON.stringify(users));
+                    
+                    // Сохранение данных в Cloudflare KV
+                    await fetch('https://your-cloudflare-worker-url', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    document.getElementById('success').style.display = 'block';
+                    document.getElementById('error').style.display = 'none';
+                } else {
+                    alert("Имя пользователя уже занято!");
+                }
+            } else {
+                alert("Введите имя пользователя и пароль!");
+            }
+        }
+        
+        function openProfile() {
+            let username = localStorage.getItem('currentUser');
+            if (username) {
+                window.location.href = "profile.html?username=" + username;
+            } else {
+                alert("Сначала войдите в систему!");
+            }
+        }
+    </script>
 </body>
 </html>
