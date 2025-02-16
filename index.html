@@ -61,7 +61,7 @@
             let username = document.getElementById('username').value;
             let password = document.getElementById('password').value;
 
-            let response = await fetch('https://your-cloudflare-worker-url/login', {
+            let response = await fetch('https://iper.ivantimockin19.workers.dev/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -79,7 +79,7 @@
             let username = document.getElementById('username').value;
             let password = document.getElementById('password').value;
 
-            let response = await fetch('https://your-cloudflare-worker-url/register', {
+            let response = await fetch('https://iper.ivantimockin19.workers.dev/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
