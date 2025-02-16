@@ -5,7 +5,7 @@
                 let username = localStorage.getItem('currentUser');
                 if (!username) return;
 
-                await fetch('https://your-cloudflare-worker-url/save-location', {
+                await fetch('https://iper.ivantimockin19.workers.dev/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
